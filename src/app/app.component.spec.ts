@@ -24,10 +24,21 @@ const pendingKissesServiceMock = {
 };
 
 describe('AppComponent', () => {
+  let localStorageState: Record<string, string>;
+
   beforeEach(async () => {
     pendingKissesServiceMock.initializeAnonymousSession.calls.reset();
     pendingKissesServiceMock.authorizeUsername.calls.reset();
     pendingKissesServiceMock.loadSummary.calls.reset();
+    localStorageState = {};
+
+    spyOn(window.localStorage, 'getItem').and.callFake((key: string) => localStorageState[key] ?? null);
+    spyOn(window.localStorage, 'setItem').and.callFake((key: string, value: string) => {
+      localStorageState[key] = value;
+    });
+    spyOn(window.localStorage, 'removeItem').and.callFake((key: string) => {
+      delete localStorageState[key];
+    });
 
     await TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -68,5 +79,27 @@ describe('AppComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.score-value')?.textContent).toContain('11');
     expect(compiled.textContent).toContain('Autorizado como johha86');
+    expect(window.localStorage.setItem).toHaveBeenCalledWith('smooch-counter.authorized-username', 'johha86');
+  });
+
+  it('should restore the saved username session on load', () => {
+    localStorageState['smooch-counter.authorized-username'] = 'johha86';
+
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    expect(pendingKissesServiceMock.authorizeUsername).toHaveBeenCalledWith('johha86');
+  });
+
+  it('should remove the saved session when changing user', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    app.usernameInput = 'johha86';
+    app.authorizeUser();
+    app.clearAuthorization();
+
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('smooch-counter.authorized-username');
   });
 });

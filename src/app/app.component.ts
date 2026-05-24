@@ -31,6 +31,7 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly errorMessage = signal<string | null>(null);
   readonly activeSession = signal<AuthorizedKissSession | null>(null);
   readonly loveBursts = signal<LoveBurst[]>([]);
+  readonly showWelcomeBurst = signal(false);
   readonly isBusy = computed(() => this.busyMessage() !== null);
   readonly isAuthorized = computed(() => this.activeSession() !== null);
 
@@ -38,6 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private readonly pendingKissesService = inject(PendingKissesService);
   private readonly timerIds = new Set<number>();
+  private readonly storageKey = 'smooch-counter.authorized-username';
   private burstId = 0;
 
   ngOnInit(): void {
@@ -60,6 +62,7 @@ export class AppComponent implements OnInit, OnDestroy {
       .initializeAnonymousSession()
       .pipe(finalize(() => this.busyMessage.set(null)))
       .subscribe({
+        next: () => this.restoreAuthorization(),
         error: (error) => this.handleError(error, 'No fue posible inicializar el acceso en Supabase.')
       });
   }
@@ -77,9 +80,7 @@ export class AppComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.busyMessage.set(null)))
       .subscribe({
         next: (authorizedSession) => {
-          this.activeSession.set(authorizedSession);
-          this.usernameInput = authorizedSession.username;
-          this.loadSummary();
+          this.completeAuthorization(authorizedSession, true);
         },
         error: (error) => this.handleError(error, 'No fue posible validar el usuario.')
       });
@@ -92,6 +93,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.eventCount.set(0);
     this.lastEventAt.set(null);
     this.usernameInput = '';
+    window.localStorage.removeItem(this.storageKey);
   }
 
   loadSummary(): void {
@@ -166,6 +168,47 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     this.errorMessage.set(fallbackMessage);
+  }
+
+  private restoreAuthorization(): void {
+    const storedUsername = window.localStorage.getItem(this.storageKey)?.trim();
+    if (!storedUsername) {
+      return;
+    }
+
+    this.busyMessage.set('Recuperando tu sesion...');
+
+    this.pendingKissesService
+      .authorizeUsername(storedUsername)
+      .pipe(finalize(() => this.busyMessage.set(null)))
+      .subscribe({
+        next: (authorizedSession) => this.completeAuthorization(authorizedSession, false),
+        error: () => {
+          window.localStorage.removeItem(this.storageKey);
+          this.clearAuthorization();
+        }
+      });
+  }
+
+  private completeAuthorization(session: AuthorizedKissSession, animateWelcome: boolean): void {
+    this.activeSession.set(session);
+    this.usernameInput = session.username;
+    window.localStorage.setItem(this.storageKey, session.username);
+    if (animateWelcome) {
+      this.triggerWelcomeBurst();
+    }
+    this.loadSummary();
+  }
+
+  private triggerWelcomeBurst(): void {
+    this.showWelcomeBurst.set(true);
+
+    const timerId = window.setTimeout(() => {
+      this.showWelcomeBurst.set(false);
+      this.timerIds.delete(timerId);
+    }, 1500);
+
+    this.timerIds.add(timerId);
   }
 
   private spawnLoveBursts(amount: number): void {

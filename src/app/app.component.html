@@ -23,10 +23,6 @@
             Entrar
           </button>
         </form>
-
-        <p class="helper-copy">
-          Solo los nombres registrados en Supabase pueden usar el contador.
-        </p>
       } @else {
         <div class="session-banner">
           <span>Autorizado como {{ activeSession()?.username }}</span>
@@ -105,4 +101,10 @@
       </span>
     }
   </div>
+
+  @if (showWelcomeBurst()) {
+    <div class="welcome-burst" aria-hidden="true">
+      <span class="welcome-emoji">😍</span>
+    </div>
+  }
 </main>
