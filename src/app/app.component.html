@@ -1,0 +1,108 @@
+<main class="app-shell">
+  <div class="glow glow-left" aria-hidden="true"></div>
+  <div class="glow glow-right" aria-hidden="true"></div>
+
+  <div class="grid">
+    <section class="hero-card">
+      <h1>{{ title }}</h1>
+
+      @if (!isAuthorized()) {
+        <form class="username-form" (ngSubmit)="authorizeUser()">
+          <label class="username-label" for="username">Usuario autorizado</label>
+          <input
+            id="username"
+            name="username"
+            class="username-input"
+            type="text"
+            autocomplete="username"
+            [disabled]="isBusy()"
+            [(ngModel)]="usernameInput"
+            placeholder="Escribe tu username"
+          >
+          <button class="username-submit" type="submit" [disabled]="isBusy()">
+            Entrar
+          </button>
+        </form>
+
+        <p class="helper-copy">
+          Solo los nombres registrados en Supabase pueden usar el contador.
+        </p>
+      } @else {
+        <div class="session-banner">
+          <span>Autorizado como {{ activeSession()?.username }}</span>
+          <button type="button" class="change-user-button" [disabled]="isBusy()" (click)="clearAuthorization()">
+            Cambiar usuario
+          </button>
+        </div>
+
+        <div class="score-card" aria-live="polite">
+          @if (busyMessage(); as message) {
+            <div class="loading-overlay" role="status" aria-live="polite">
+              <span class="spinner"></span>
+              <span>{{ message }}</span>
+            </div>
+          }
+
+          <p class="score-label">Pendientes ahora</p>
+          <p class="score-value">{{ totalPendingKisses() }}</p>
+
+          @if (lastEventAt(); as lastEvent) {
+            <p class="score-timestamp">Ultimo movimiento: {{ lastEvent | date: 'medium' }}</p>
+          } @else {
+            <p class="score-timestamp">Todavia no se ha registrado ningun beso pendiente.</p>
+          }
+        </div>
+
+        <div class="actions">
+          @for (amount of increments; track amount) {
+            <button
+              class="action-button"
+              type="button"
+              [disabled]="isBusy()"
+              (click)="addKisses(amount)"
+            >
+              <span class="action-value">+{{ amount }}</span>
+              <span class="action-label">
+                @if (amount === 1) {
+                  Besito
+                } @else if (amount === 10) {
+                  Racha dulce
+                } @else {
+                  Lluvia de amor
+                }
+              </span>
+            </button>
+          }
+        </div>
+
+        <button
+          class="reset-button"
+          type="button"
+          [disabled]="isBusy()"
+          (click)="clearKisses()"
+        >
+          Quitar todos los besos
+        </button>
+      }
+
+      @if (errorMessage(); as errorMessage) {
+        <p class="error-banner">{{ errorMessage }}</p>
+      }
+    </section>
+  </div>
+
+  <div class="burst-layer" aria-hidden="true">
+    @for (burst of loveBursts(); track burst.id) {
+      <span
+        class="burst"
+        [style.left.%]="burst.left"
+        [style.top.%]="burst.top"
+        [style.fontSize.rem]="burst.sizeRem"
+        [style.animationDuration.ms]="burst.durationMs"
+        [style.--tilt]="burst.rotationDeg + 'deg'"
+      >
+        {{ burst.glyph }}
+      </span>
+    }
+  </div>
+</main>

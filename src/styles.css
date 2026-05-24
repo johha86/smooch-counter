@@ -1,0 +1,35 @@
+:root {
+  color-scheme: light;
+  background:
+    radial-gradient(circle at top left, #ffd5df 0, transparent 28%),
+    radial-gradient(circle at bottom right, #ffd7bd 0, transparent 32%),
+    linear-gradient(180deg, #fff8f7 0%, #fff3f1 100%);
+  color: #2e1221;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  background:
+    radial-gradient(circle at top left, rgba(255, 213, 223, 0.7), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(255, 215, 189, 0.75), transparent 30%),
+    linear-gradient(180deg, #fff8f7 0%, #fff1ef 100%);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
