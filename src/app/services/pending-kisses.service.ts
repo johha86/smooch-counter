@@ -2,14 +2,11 @@ import { Injectable } from '@angular/core';
 import { AuthError, PostgrestError, createClient } from '@supabase/supabase-js';
 import { from, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-//foo
+
 interface AuthorizedUserRow {
   id: number;
   username: string;
-}
-
-interface SessionRow {
-  id: number;
+  session_fk: number | null;
 }
 
 interface PendingKissEventRow {
@@ -79,7 +76,7 @@ export class PendingKissesService {
 
     const { data: user, error: userError } = await this.supabase
       .from('users')
-      .select('id, username')
+      .select('id, username, session_fk')
       .eq('username', username)
       .maybeSingle<AuthorizedUserRow>();
 
@@ -91,22 +88,12 @@ export class PendingKissesService {
       throw new Error('Ese nombre de usuario no esta autorizado para usar la plataforma.');
     }
 
-    const { data: session, error: sessionError } = await this.supabase
-      .from('sessions')
-      .select('id')
-      .or(`username_a.eq.${user.id},username_b.eq.${user.id}`)
-      .maybeSingle<SessionRow>();
-
-    if (sessionError) {
-      throw new Error(this.describeSupabaseError(sessionError));
-    }
-
-    if (!session) {
-      throw new Error('No existe una sesion configurada para este usuario en la tabla sessions.');
+    if (!user.session_fk) {
+      throw new Error('El usuario existe pero no tiene session_fk configurado en la tabla users.');
     }
 
     return {
-      sessionId: session.id,
+      sessionId: user.session_fk,
       userId: user.id,
       username: user.username
     };
