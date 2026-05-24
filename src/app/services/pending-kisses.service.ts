@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AuthError, PostgrestError, createClient } from '@supabase/supabase-js';
 import { from, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-
+//foo
 interface AuthorizedUserRow {
   id: number;
   username: string;
