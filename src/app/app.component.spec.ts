@@ -9,7 +9,9 @@ const pendingKissesServiceMock = {
     of({
       sessionId: 7,
       userId: 3,
-      username: 'johha86'
+      username: 'johha86',
+      usernameA: 'guapo',
+      usernameB: 'bonita'
     })
   ),
   loadSummary: jasmine.createSpy('loadSummary').and.returnValue(
@@ -78,7 +80,8 @@ describe('AppComponent', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.score-value')?.textContent).toContain('11');
-    expect(compiled.textContent).toContain('Autorizado como johha86');
+    expect(compiled.textContent).toContain('Pendientes de guapo and bonita');
+    expect(compiled.textContent).toContain('Bukake de Besos');
     expect(window.localStorage.setItem).toHaveBeenCalledWith('smooch-counter.authorized-username', 'johha86');
   });
 

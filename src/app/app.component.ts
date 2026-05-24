@@ -212,16 +212,16 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private spawnLoveBursts(amount: number): void {
-    const burstCount = amount >= 50 ? 16 : amount >= 10 ? 10 : 6;
+    const burstCount = amount >= 50 ? 40 : amount >= 10 ? 24 : 14;
     const glyphs = ['💋', '❤', '♥', '✦'];
     const createdBursts = Array.from({ length: burstCount }, (_, index) => ({
       id: ++this.burstId,
       glyph: glyphs[index % glyphs.length],
-      left: 18 + Math.random() * 64,
-      top: 38 + Math.random() * 30,
+      left: 6 + Math.random() * 88,
+      top: 22 + Math.random() * 58,
       rotationDeg: -26 + Math.random() * 52,
-      sizeRem: 1.5 + Math.random() * 1.4,
-      durationMs: 1400 + Math.round(Math.random() * 700)
+      sizeRem: 1.5 + Math.random() * 1.9,
+      durationMs: 1500 + Math.round(Math.random() * 900)
     }));
 
     this.loveBursts.update((currentBursts) => [...currentBursts, ...createdBursts]);
@@ -231,7 +231,7 @@ export class AppComponent implements OnInit, OnDestroy {
         currentBursts.filter((burst) => !createdBursts.some((createdBurst) => createdBurst.id === burst.id))
       );
       this.timerIds.delete(timerId);
-    }, 2600);
+    }, 3200);
 
     this.timerIds.add(timerId);
   }

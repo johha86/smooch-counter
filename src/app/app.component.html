@@ -25,7 +25,6 @@
         </form>
       } @else {
         <div class="session-banner">
-          <span>Autorizado como {{ activeSession()?.username }}</span>
           <button type="button" class="change-user-button" [disabled]="isBusy()" (click)="clearAuthorization()">
             Cambiar usuario
           </button>
@@ -39,7 +38,9 @@
             </div>
           }
 
-          <p class="score-label">Pendientes ahora</p>
+          <p class="score-label">
+            Pendientes de {{ activeSession()?.usernameA }} y {{ activeSession()?.usernameB }}
+          </p>
           <p class="score-value">{{ totalPendingKisses() }}</p>
 
           @if (lastEventAt(); as lastEvent) {
@@ -60,14 +61,14 @@
               <span class="action-value">+{{ amount }}</span>
               <span class="action-label">
                 @if (amount === 1) {
-                  Besito
-                } @else if (amount === 10) {
-                  Racha dulce
-                } @else {
-                  Lluvia de amor
-                }
-              </span>
-            </button>
+                Besito
+              } @else if (amount === 10) {
+                Racha dulce
+              } @else {
+                Bukake de Besos
+              }
+            </span>
+          </button>
           }
         </div>
 

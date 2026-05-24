@@ -9,6 +9,12 @@ interface AuthorizedUserRow {
   session_fk: number | null;
 }
 
+interface SessionParticipantRow {
+  id: number;
+  username_a: number | null;
+  username_b: number | null;
+}
+
 interface PendingKissEventRow {
   amount: number;
   created_at: string;
@@ -18,6 +24,8 @@ export interface AuthorizedKissSession {
   sessionId: number;
   userId: number;
   username: string;
+  usernameA: string;
+  usernameB: string;
 }
 
 export interface PendingKissSummary {
@@ -92,10 +100,45 @@ export class PendingKissesService {
       throw new Error('El usuario existe pero no tiene session_fk configurado en la tabla users.');
     }
 
+    const { data: session, error: sessionError } = await this.supabase
+      .from('sessions')
+      .select('id, username_a, username_b')
+      .eq('id', user.session_fk)
+      .maybeSingle<SessionParticipantRow>();
+
+    if (sessionError) {
+      throw new Error(this.describeSupabaseError(sessionError));
+    }
+
+    if (!session) {
+      throw new Error('La sesion asociada al usuario no existe en la tabla sessions.');
+    }
+
+    const participantIds = [session.username_a, session.username_b].filter((value): value is number => value !== null);
+    const { data: participants, error: participantsError } = await this.supabase
+      .from('users')
+      .select('id, username')
+      .in('id', participantIds)
+      .returns<AuthorizedUserRow[]>();
+
+    if (participantsError) {
+      throw new Error(this.describeSupabaseError(participantsError));
+    }
+
+    const usernamesById = new Map((participants ?? []).map((participant) => [participant.id, participant.username]));
+    const usernameA = session.username_a ? usernamesById.get(session.username_a) : undefined;
+    const usernameB = session.username_b ? usernamesById.get(session.username_b) : undefined;
+
+    if (!usernameA || !usernameB) {
+      throw new Error('No fue posible resolver los dos usuarios asociados a la sesion.');
+    }
+
     return {
       sessionId: user.session_fk,
       userId: user.id,
-      username: user.username
+      username: user.username,
+      usernameA,
+      usernameB
     };
   }
 
