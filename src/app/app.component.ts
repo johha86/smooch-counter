@@ -141,6 +141,14 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const confirmed = window.confirm(
+      `Se van a borrar todos los besos pendientes de ${session.usernameA} y ${session.usernameB}. Quieres continuar?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     this.errorMessage.set(null);
     this.busyMessage.set('Borrando todos los besos pendientes...');
 

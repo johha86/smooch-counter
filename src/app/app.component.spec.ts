@@ -27,12 +27,15 @@ const pendingKissesServiceMock = {
 
 describe('AppComponent', () => {
   let localStorageState: Record<string, string>;
+  let confirmSpy: jasmine.Spy;
 
   beforeEach(async () => {
     pendingKissesServiceMock.initializeAnonymousSession.calls.reset();
     pendingKissesServiceMock.authorizeUsername.calls.reset();
     pendingKissesServiceMock.loadSummary.calls.reset();
+    pendingKissesServiceMock.clearAll.calls.reset();
     localStorageState = {};
+    confirmSpy = spyOn(window, 'confirm').and.returnValue(true);
 
     spyOn(window.localStorage, 'getItem').and.callFake((key: string) => localStorageState[key] ?? null);
     spyOn(window.localStorage, 'setItem').and.callFake((key: string, value: string) => {
@@ -80,7 +83,7 @@ describe('AppComponent', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.score-value')?.textContent).toContain('11');
-    expect(compiled.textContent).toContain('Pendientes de guapo and bonita');
+    expect(compiled.textContent).toContain('Pendientes de guapo y bonita');
     expect(compiled.textContent).toContain('Bukake de Besos');
     expect(window.localStorage.setItem).toHaveBeenCalledWith('smooch-counter.authorized-username', 'johha86');
   });
@@ -104,5 +107,40 @@ describe('AppComponent', () => {
     app.clearAuthorization();
 
     expect(window.localStorage.removeItem).toHaveBeenCalledWith('smooch-counter.authorized-username');
+  });
+
+  it('should ask for confirmation before clearing the kisses', () => {
+    pendingKissesServiceMock.clearAll.and.returnValue(
+      of({
+        totalPendingKisses: 0,
+        eventCount: 0,
+        latestEventAt: null
+      })
+    );
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    app.usernameInput = 'johha86';
+    app.authorizeUser();
+    app.clearKisses();
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(pendingKissesServiceMock.clearAll).toHaveBeenCalledWith(7);
+  });
+
+  it('should not clear the kisses when confirmation is rejected', () => {
+    confirmSpy.and.returnValue(false);
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    app.usernameInput = 'johha86';
+    app.authorizeUser();
+    app.clearKisses();
+
+    expect(pendingKissesServiceMock.clearAll).not.toHaveBeenCalled();
   });
 });
